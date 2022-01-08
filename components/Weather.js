@@ -1,77 +1,103 @@
 import React, {useEffect,useState} from 'react'
-import { View, Text ,StyleSheet, Image , TouchableOpacity} from 'react-native'
+import { View, Text ,StyleSheet, Image , TouchableOpacity, Button} from 'react-native'
 import Geolocation from '@react-native-community/geolocation'
-import { MaterialCommunityIcons , Feather  } from 'react-native-vector-icons'
-import WeatherScroll from './WeatherScroll';
-
+import Icon from 'react-native-vector-icons/FontAwesome';
+import Temp from 'react-native-vector-icons/MaterialCommunityIcons'
+import WeatherScroll from './WeatherScroll'
+import WeatherDetails from './WeatherDetails';
 const Weather = () => {
+    const reloadPage = () => {}
+
+    const [data,setData] = useState({})
+    const [daily,setDaily] = useState({})
+    const [weather,setWeather] = useState({})
+    const [sys,setSys] = useState({})
+    const [dt,setDate] = useState()
+    const [current,setCurrent] = useState({})
+    const [icon,setIcon]  = useState()
+    const [time,setTime] = useState()
+    const [dailyForecast,setDailyForecast] = useState({})
+    
+
+    useEffect(() => {
+        let timer = setInterval( () => {
+            setTime(new Date().getHours() + ':' + new Date().getMinutes() )
+        },1000)
+
+        return () => clearInterval(timer)
+    } , [])
 
     const currentLocation =  useEffect(() => {
         (async () => {
              Geolocation.getCurrentPosition(info => {
                 let coords;
                 coords = info.coords
-                //fetchDataFromApi(coords.latitude,coords.longitude)
+                fetchDataFromApi(coords.latitude,coords.longitude)
                 fetchDailyDatafromApi(coords.latitude,coords.longitude)
+                setIcon(weather.icon)
         });
         }) ()
     }, [currentLocation])
 
-    const [data,setData] = useState({})
-    const [daily,setDaily] = useState({})
+  
 
-    // const fetchDataFromApi = (latitude,longitude) => {
-    //     if (latitude && longitude) {
-    //     fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&exclude=minutely,hourly&units=metric&appid=4f75b23f0106d171ddb805d1553bf84a`).then((res) => res.json()).then((data) => {
-    //         console.log(data)
-    //         setData(data)
-    //     }).catch((error) => {
-    //         console.error(error)
-    //     })
-    //     }
-    // }
+    const fetchDataFromApi = (latitude,longitude) => {
+        if (latitude && longitude) {
+        fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&exclude=minutely,hourly&units=metric&appid=4f75b23f0106d171ddb805d1553bf84a`).
+        then((res) => res.json()).
+        then((data) => {
+            setData(data)
+            setCurrent(data.current)
+            setDailyForecast(data.daily)
+            
+        }).catch((error) => {
+            console.error(error)
+        })
+        }
+    }
 
     const fetchDailyDatafromApi = (latitude,longitude) => {
         if (latitude && longitude) {
-        fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=4f75b23f0106d171ddb805d1553bf84a`).then((res) => res.json())
+        fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=4f75b23f0106d171ddb805d1553bf84a`)
+        .then((res) => res.json())
         .then((data) => {
             setDaily(data)
+            setWeather(data.weather[0])
+            setSys(data.sys)
+            let date
+            date = new Date(data.dt * 1000).toDateString()
+            setDate(date)
+            
         }).catch((error) => {
             console.error(error)
         })
     }
     }
 
+    
+
     return (
         <View>
             <View style={styles.menu}>
-                <Text style={styles.place}> {daily.name} {daily.sys.country}  </Text>
-                <Text style={{color:'white',fontSize : 20,marginRight: 10,}}> </Text>
+                <Icon.Button name="refresh" size={15} color="white" backgroundColor='black'> Refresh</Icon.Button>
+                <Text style={styles.place}> {daily.name}  {sys.country} </Text>
+                <Text style={{color:'white',fontSize : 20,marginRight: 10,}}> {weather.main} </Text>   
             </View>
             
             <View style={styles.dateView}>
-                <Text style={styles.date}></Text>
+                <Text style={styles.date} >       {time}</Text>
+                <Text style={styles.date}>{dt}</Text>
             </View>
 
-{/*
+            <Text style={{fontSize:80,textAlign:'center',paddingBottom:20}}>{Math.round(current.temp)} <Temp name="temperature-celsius" size={30} /> </Text>
             <View style={styles.tempView}>
-                <Text style={styles.temp}> {curr}  <MaterialCommunityIcons name="temperature-celsius" size={45} color="white" /> </Text> 
-                <Text style={{color : 'white',fontSize:17}}> {weather} </Text> 
-                <Image source={{uri: `http://openweathermap.org/img/wn/${icon}@2x.png`}} style={{height : 50,width:50}}/>
+                <Text style={{fontSize:20}}>{weather.description} </Text>
+                <Text>Feels Like {Math.round(current.feels_like)} <Temp name="temperature-celsius" size={15} /></Text>
+                <Image source={{uri: `http://openweathermap.org/img/wn/${icon}@2x.png`}} style={{height : 75,width:75}}/>
             </View>
-
-            <View style={styles.detailsView}> 
-                <Text style={styles.detailsText}>Maximum      {maximum} <MaterialCommunityIcons name="temperature-celsius" size={30} color="black" /></Text>
-                <Text style={styles.detailsText}>Minimum      {minimum} <MaterialCommunityIcons name="temperature-celsius" size={30} color="black" /></Text>
-                <Text style={styles.detailsText}>Feels Like     {feels_like} <MaterialCommunityIcons name="temperature-celsius" size={30} color="black" /> </Text>
-                <Text style={styles.detailsText}>Wind Speed  {windSpeed} km/h  <Feather name="wind" size={24} color="black" /></Text>
-                <Text style={styles.detailsText}>Sunrise          {sunriseDaily} am <Feather name="sunrise" size={26} color="black" /> </Text> 
-                <Text style={styles.detailsText}>Sunset           {sunsetDaily} pm <Feather name="sunset" size={26} color="black" /> </Text>
-                <Text style={styles.detailsText}>Pressure        {pressure} hPa</Text>
-                <Text style={styles.detailsText}>Humidity        {humidity}% </Text>
-            </View>
-            <WeatherScroll weatherData={data.daily}/> */}
-
+            
+            <WeatherDetails details={current}/>
+            <WeatherScroll weatherData={dailyForecast}/>
         </View>
     )
 }
@@ -95,7 +121,7 @@ const styles = StyleSheet.create({
         color: 'white',
     },
     date :{
-        fontSize : 40,
+        fontSize : 35,
         color : '#ffe4e1',
         paddingLeft :60,
         fontFamily : 'sans-serif-condensed',
@@ -109,18 +135,8 @@ const styles = StyleSheet.create({
     },
     tempView : {
         flexDirection :'row',
-        backgroundColor : '#00000033',
-        padding: 5,
-        borderRadius : 10,
-        borderColor : 'white',
-        borderWidth : 1,
-        marginBottom : 30,
-        marginHorizontal : 20,
-    },
-    temp : {
-        color: 'white',
-        fontSize : 30,
-        padding: 3,
+        justifyContent:'center',
+        padding: 10,
     },
     detailsView : {
         fontSize : 20,

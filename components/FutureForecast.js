@@ -1,6 +1,6 @@
 import React  from 'react'
 import { View, Text, Image , StyleSheet} from 'react-native'
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Temp from 'react-native-vector-icons/MaterialCommunityIcons'
 
 const FutureForecast = ({data}) => {
     return (
@@ -25,8 +25,8 @@ const FutureForecastItem = ({forecastItem}) => {
         <View style={styles.container}> 
             <Text style={styles.day}> { new Date(forecastItem.dt * 1000).toDateString() } </Text>
             <Image source={img} style={styles.image}/>
-            <Text style={styles.temp}> Maximum   {forecastItem.temp.max} <MaterialCommunityIcons name="temperature-celsius" size={15} color="white" /></Text>
-            <Text style={styles.temp}> Minimum {forecastItem.temp.min} <MaterialCommunityIcons name="temperature-celsius" size={15} color="white" /> </Text>
+            <Text style={styles.temp}> Maximum   {Math.round(forecastItem.temp.max)} <Temp name="temperature-celsius" size={15} /> </Text>
+            <Text style={styles.temp}> Minimum {Math.round(forecastItem.temp.min)}  <Temp name="temperature-celsius" size={15} /></Text>
             <Text style={styles.temp}> Humidity {forecastItem.humidity}% </Text>
         </View>
     )
