@@ -17,8 +17,8 @@ const Weather = () => {
     const [icon,setIcon]  = useState()
     const [time,setTime] = useState()
     const [dailyForecast,setDailyForecast] = useState({})
-    
-
+    const [main,setMain] = useState({})
+    const [maxmin , setMaxmin] = useState({})
     useEffect(() => {
         let timer = setInterval( () => {
             setTime(new Date().getHours() + ':' + new Date().getMinutes() )
@@ -49,7 +49,8 @@ const Weather = () => {
             setData(data)
             setCurrent(data.current)
             setDailyForecast(data.daily)
-            
+            let temp = data.daily[0]
+            setMaxmin(temp.temp)
         }).catch((error) => {
             console.error(error)
         })
@@ -67,6 +68,7 @@ const Weather = () => {
             let date
             date = new Date(data.dt * 1000).toDateString()
             setDate(date)
+            setMain(data.main)
             
         }).catch((error) => {
             console.error(error)
@@ -79,23 +81,25 @@ const Weather = () => {
     return (
         <View>
             <View style={styles.menu}>
-                <Icon.Button name="refresh" size={15} color="white" backgroundColor='black'> Refresh</Icon.Button>
                 <Text style={styles.place}> {daily.name}  {sys.country} </Text>
+                <Text style={{fontSize:30}} >{time}</Text>
                 <Text style={{color:'white',fontSize : 20,marginRight: 10,}}> {weather.main} </Text>   
             </View>
             
-            <View style={styles.dateView}>
-                <Text style={styles.date} >       {time}</Text>
-                <Text style={styles.date}>{dt}</Text>
-            </View>
+            <Text style={{fontSize:30,textAlign:'center',padding:10}}>{dt}</Text>
 
-            <Text style={{fontSize:80,textAlign:'center',paddingBottom:20}}>{Math.round(current.temp)} <Temp name="temperature-celsius" size={30} /> </Text>
+            <Text style={{fontSize:100,textAlign:'center',paddingBottom:20}}>{Math.round(main.temp)} <Temp name="temperature-celsius" size={30} /> </Text>
+
             <View style={styles.tempView}>
                 <Text style={{fontSize:20}}>{weather.description} </Text>
-                <Text>Feels Like {Math.round(current.feels_like)} <Temp name="temperature-celsius" size={15} /></Text>
                 <Image source={{uri: `http://openweathermap.org/img/wn/${icon}@2x.png`}} style={{height : 75,width:75}}/>
+                <Text style={{fontSize:20}}>Feels Like {Math.round(main.feels_like)} <Temp name="temperature-celsius" size={15} /></Text>
             </View>
-            
+            <View style={styles.maxminview}>
+                <Text style={{fontSize:20 , paddingLeft:20}}>Maximum {Math.round(maxmin.max)} <Temp name="temperature-celsius" size={20} /></Text>
+                <Text style={{fontSize:20 ,paddingRight:16 ,paddingBottom:20}}>Minimum {Math.round(maxmin.min)} <Temp name="temperature-celsius" size={20} /></Text>
+            </View>
+
             <WeatherDetails details={current}/>
             <WeatherScroll weatherData={dailyForecast}/>
         </View>
@@ -120,23 +124,19 @@ const styles = StyleSheet.create({
         fontSize:20,
         color: 'white',
     },
-    date :{
-        fontSize : 35,
-        color : '#ffe4e1',
-        paddingLeft :60,
-        fontFamily : 'sans-serif-condensed',
-        borderRadius : 15,
-    },
     dateView : {
         marginTop : 20,
         paddingLeft : 30,
         paddingRight:35,
         paddingBottom : 40,
+        flexDirection:'row',
+        justifyContent:'space-between'
     },
     tempView : {
         flexDirection :'row',
-        justifyContent:'center',
+        justifyContent:'space-around',
         padding: 10,
+        paddingBottom : 30
     },
     detailsView : {
         fontSize : 20,
@@ -154,4 +154,10 @@ const styles = StyleSheet.create({
         paddingLeft : 40,
         padding:   2,
     },
+    maxminview : {
+        backgroundColor : '#00000033',
+        flexDirection:'row',
+        justifyContent:'space-between',
+        
+    }
 })
